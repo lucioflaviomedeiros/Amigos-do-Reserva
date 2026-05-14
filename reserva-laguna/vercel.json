@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd reserva-laguna && npm install && npm run build",
-  "outputDirectory": "reserva-laguna/.next",
-  "installCommand": "echo skip"
-}

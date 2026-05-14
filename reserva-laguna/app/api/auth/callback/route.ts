@@ -3,33 +3,49 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  const url = new URL(request.url)
-  const code = url.searchParams.get('code')
-  const next = url.searchParams.get('next') ?? '/'
-  const origin = url.origin
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') ?? '/'
 
   if (code) {
     const cookieStore = await cookies()
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          getAll() { return cookieStore.getAll() },
+          getAll() {
+            return cookieStore.getAll()
+          },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, {
+                ...options,
+                sameSite: 'lax',
+                secure: true,
+                httpOnly: true,
+              })
+            })
           },
         },
       }
     )
+
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      const forwardedHost = request.headers.get('x-forwarded-host')
+      const isLocalEnv = process.env.NODE_ENV === 'development'
+      if (isLocalEnv) {
+        return NextResponse.redirect(`${origin}${next}`)
+      } else if (forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}${next}`)
+      } else {
+        return NextResponse.redirect(`${origin}${next}`)
+      }
     }
   }
 
-  // Return to home with error
-  return NextResponse.redirect(`${origin}/?error=auth`)
+  return NextResponse.redirect(`${origin}/?error=auth_error`)
 }

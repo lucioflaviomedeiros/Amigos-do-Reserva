@@ -11,34 +11,35 @@ interface Props {
 export default function Header({ profile: initialProfile }: Props) {
   const [profile, setProfile] = useState(initialProfile)
   const [menuOpen, setMenuOpen] = useState(false)
-  const supabase = createClient()
 
   useEffect(() => {
-    // Listen for auth state changes
+    const supabase = createClient()
+
+    // Check current session on mount
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user && !profile) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+    })
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Fetch profile after sign in
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-          if (data) {
-            setProfile(data)
-          } else {
-            // Profile might not exist yet, reload page
-            window.location.reload()
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null)
-        } else if (event === 'INITIAL_SESSION' && session?.user && !profile) {
+        if (session?.user) {
           const { data } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single()
           if (data) setProfile(data)
+          else window.location.reload()
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null)
         }
       }
     )
@@ -58,7 +59,6 @@ export default function Header({ profile: initialProfile }: Props) {
         justifyContent: 'space-between',
         height: 64, gap: 16,
       }}>
-        {/* Logo */}
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           <Image
             src="/logo.png"
@@ -76,7 +76,6 @@ export default function Header({ profile: initialProfile }: Props) {
           }}>Fornecedores</span>
         </a>
 
-        {/* Search */}
         <div style={{ flex: 1, maxWidth: 440, position: 'relative' }}>
           <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"
             viewBox="0 0 24 24"
@@ -101,7 +100,6 @@ export default function Header({ profile: initialProfile }: Props) {
           />
         </div>
 
-        {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('open-indicate'))}

@@ -1,14 +1,50 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { createClient } from '@/lib/supabase-client'
 import type { Profile } from '@/lib/types'
 
 interface Props {
   profile: Profile | null
 }
 
-export default function Header({ profile }: Props) {
+export default function Header({ profile: initialProfile }: Props) {
+  const [profile, setProfile] = useState(initialProfile)
   const [menuOpen, setMenuOpen] = useState(false)
+  const supabase = createClient()
+
+  useEffect(() => {
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Fetch profile after sign in
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+          if (data) {
+            setProfile(data)
+          } else {
+            // Profile might not exist yet, reload page
+            window.location.reload()
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null)
+        } else if (event === 'INITIAL_SESSION' && session?.user && !profile) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+          if (data) setProfile(data)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   return (
     <header style={{
@@ -85,7 +121,7 @@ export default function Header({ profile }: Props) {
                   background: 'transparent',
                   border: '1px solid rgba(201,168,76,0.4)',
                   borderRadius: 40, padding: '7px 14px',
-                  color: 'var(--gold-light)',
+                  color: profile.role === 'admin' ? 'var(--gold)' : 'var(--gold-light)',
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 13, cursor: 'pointer',
                 }}

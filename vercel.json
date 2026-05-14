@@ -1,9 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "reserva-laguna/package.json",
-      "use": "@vercel/next"
-    }
-  ]
+  "installCommand": "cd reserva-laguna && npm install",
+  "buildCommand": "cd reserva-laguna && npm run build",
+  "outputDirectory": "reserva-laguna/.next"
 }

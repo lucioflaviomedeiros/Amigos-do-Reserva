@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd reserva-laguna && npm install",
+  "installCommand": "cd reserva-laguna && npm install --legacy-peer-deps",
   "buildCommand": "cd reserva-laguna && npm run build",
   "outputDirectory": "reserva-laguna/.next"
 }

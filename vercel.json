@@ -1,6 +1,0 @@
-{
-  "installCommand": "cd reserva-laguna && npm install --legacy-peer-deps",
-  "buildCommand": "cd reserva-laguna && ./node_modules/.bin/next build",
-  "outputDirectory": "reserva-laguna/.next",
-  "framework": "nextjs"
-}

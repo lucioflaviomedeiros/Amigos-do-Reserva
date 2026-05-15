@@ -1,3 +1,4 @@
+import AuthHandler from '@/components/ui/AuthHandler'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { getProfile } from '@/lib/auth'
@@ -46,7 +47,7 @@ export default async function HomePage({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <Header profile={profile} />
+      <Header profile={profile} /><AuthHandler />
       <CoverBanner coverUrl={settings?.cover_photo_url ?? null} isAdmin={profile?.role === 'admin'} />
       <NoticeBar text={settings?.notice_text ?? ''} />
       <Hero suppliersCount={suppliers?.length ?? 0} />

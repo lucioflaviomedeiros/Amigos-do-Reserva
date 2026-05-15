@@ -1,5 +1,3 @@
-import AuthHandler from '@/components/ui/AuthHandler'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { getProfile } from '@/lib/auth'
 import Header from '@/components/ui/Header'
@@ -7,19 +5,11 @@ import CoverBanner from '@/components/ui/CoverBanner'
 import NoticeBar from '@/components/ui/NoticeBar'
 import Hero from '@/components/ui/Hero'
 import PlatformClient from '@/components/ui/PlatformClient'
+import AuthHandler from '@/components/ui/AuthHandler'
 
 export const dynamic = 'force-dynamic'
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: { code?: string; error?: string }
-}) {
-  // Handle OAuth code on homepage
-  if (searchParams.code) {
-    redirect(`/api/auth/callback?code=${searchParams.code}`)
-  }
-
+export default async function HomePage() {
   const supabase = createClient()
   const profile = await getProfile()
 
@@ -47,7 +37,8 @@ export default async function HomePage({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <Header profile={profile} /><AuthHandler />
+      <AuthHandler />
+      <Header profile={profile} />
       <CoverBanner coverUrl={settings?.cover_photo_url ?? null} isAdmin={profile?.role === 'admin'} />
       <NoticeBar text={settings?.notice_text ?? ''} />
       <Hero suppliersCount={suppliers?.length ?? 0} />

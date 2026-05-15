@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { getProfile } from '@/lib/auth'
 import Header from '@/components/ui/Header'
@@ -8,7 +9,16 @@ import PlatformClient from '@/components/ui/PlatformClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: { code?: string; error?: string }
+}) {
+  // Handle OAuth code on homepage
+  if (searchParams.code) {
+    redirect(`/api/auth/callback?code=${searchParams.code}`)
+  }
+
   const supabase = createClient()
   const profile = await getProfile()
 
@@ -40,7 +50,11 @@ export default async function HomePage() {
       <CoverBanner coverUrl={settings?.cover_photo_url ?? null} isAdmin={profile?.role === 'admin'} />
       <NoticeBar text={settings?.notice_text ?? ''} />
       <Hero suppliersCount={suppliers?.length ?? 0} />
-      <PlatformClient initialSuppliers={suppliers ?? []} profile={profile} initialFavorites={favorites} />
+      <PlatformClient
+        initialSuppliers={suppliers ?? []}
+        profile={profile}
+        initialFavorites={favorites}
+      />
     </div>
   )
 }

@@ -5,7 +5,6 @@ import CoverBanner from '@/components/ui/CoverBanner'
 import NoticeBar from '@/components/ui/NoticeBar'
 import Hero from '@/components/ui/Hero'
 import PlatformClient from '@/components/ui/PlatformClient'
-import AuthHandler from '@/components/ui/AuthHandler'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +36,6 @@ export default async function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-      <AuthHandler />
       <Header profile={profile} />
       <CoverBanner coverUrl={settings?.cover_photo_url ?? null} isAdmin={profile?.role === 'admin'} />
       <NoticeBar text={settings?.notice_text ?? ''} />

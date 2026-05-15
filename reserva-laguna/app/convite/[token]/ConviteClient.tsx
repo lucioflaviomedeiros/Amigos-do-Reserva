@@ -3,37 +3,41 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import type { Invite } from '@/lib/types'
 
+const CALLBACK_URL = 'https://amigosdoreserva.vercel.app/api/auth/callback'
+
 export default function ConviteClient({ invite }: { invite: Invite }) {
   const [step, setStep]   = useState<1 | 2 | 3>(1)
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const supabase = createClient()
 
   async function signInWithGoogle() {
+    const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/`,
+        redirectTo: CALLBACK_URL,
         queryParams: { full_name: invite.full_name, unit: invite.unit },
       },
     })
   }
 
   async function signInWithApple() {
+    const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
-      options: { redirectTo: `${window.location.origin}/api/auth/callback?next=/` },
+      options: { redirectTo: CALLBACK_URL },
     })
   }
 
   async function sendMagicLink() {
     if (!email || !email.includes('@')) { setError('Informe um e-mail válido'); return }
     setLoading(true); setError('')
+    const supabase = createClient()
     const { error: err } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/`,
+        emailRedirectTo: CALLBACK_URL,
         data: { full_name: invite.full_name, unit: invite.unit, role: 'morador' },
       },
     })
@@ -52,9 +56,7 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--cream)', padding: 20 }}>
-      <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 460, overflow: 'hidden', boxShadow: 'var(--card-shadow-hover)' }}>
-
-        {/* Header */}
+      <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 460, overflow: 'hidden', boxShadow: '0 8px 40px rgba(26,46,30,0.16)' }}>
         <div style={{ background: 'linear-gradient(135deg, var(--forest), var(--forest-light))', padding: '36px 32px 28px', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, background: 'rgba(201,168,76,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 32 }}>🏡</div>
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, color: 'white', marginBottom: 4 }}>Finalize seu cadastro</div>
@@ -62,8 +64,6 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
         </div>
 
         <div style={{ padding: '24px 28px 32px' }}>
-
-          {/* Pre-filled info */}
           <div style={{ background: 'var(--gold-pale)', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 12, padding: 14, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ fontSize: 24 }}>👋</div>
             <div style={{ flex: 1 }}>
@@ -73,7 +73,6 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
             <span style={{ background: '#dcfce7', color: '#16a34a', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>✓ Pré-aprovado</span>
           </div>
 
-          {/* Step indicator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 24 }}>
             <div style={stepDot(1)}>1</div>
             <div style={{ flex: 1, height: 2, background: step > 1 ? 'var(--gold)' : 'var(--cream-dark)', transition: 'background 0.3s' }} />
@@ -82,7 +81,6 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
             <div style={stepDot(3)}>3</div>
           </div>
 
-          {/* Step 1: Choose method */}
           {step === 1 && (
             <>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--forest)', marginBottom: 4 }}>Como deseja entrar?</div>
@@ -108,7 +106,6 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
             </>
           )}
 
-          {/* Step 2: Email */}
           {step === 2 && (
             <>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--forest)', marginBottom: 4 }}>Seu e-mail</div>
@@ -127,13 +124,12 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
             </>
           )}
 
-          {/* Step 3: Sent */}
           {step === 3 && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <div style={{ fontSize: 56, marginBottom: 16 }}>📧</div>
               <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: 'var(--forest)', marginBottom: 8 }}>Verifique seu e-mail!</div>
               <p style={{ fontSize: 14, color: 'var(--text-mid)', lineHeight: 1.7, marginBottom: 20 }}>
-                Enviamos o link de acesso para <strong>{email}</strong>.<br />Clique no link para ativar seu acesso à plataforma.
+                Enviamos o link de acesso para <strong>{email}</strong>.<br />Clique no link para ativar seu acesso.
               </p>
               <div style={{ background: 'var(--cream)', borderRadius: 12, padding: 16, fontSize: 13, color: 'var(--text-mid)', lineHeight: 1.9, textAlign: 'left' }}>
                 <strong style={{ color: 'var(--forest)' }}>Com acesso ativo você poderá:</strong><br />
@@ -143,7 +139,6 @@ export default function ConviteClient({ invite }: { invite: Invite }) {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
